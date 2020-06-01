@@ -13,6 +13,8 @@ def main(test=False):
     try:
         wandb.init(project="dqn_maze")
 
+        file_score = open("score.txt", "w")
+
         if (test == False):
             epsilon = 1.0
             epsilon_decay = 0.9999
@@ -86,20 +88,19 @@ def main(test=False):
                     break
         
             wandb.log({"score": score, "epoch": episode})
+            file_score.write(f"{score}\n")
 
             # zniz podiel nahody na akciach
             if (test == False and epsilon > epsilon_min):
                 epsilon *= epsilon_decay
 
-        # Save model to file
-        a1.model.save("model.h5")
     except KeyboardInterrupt:
-        print("Hra prerusena")
-
+        print("Game terminated")
+        sys.exit()
+    finally:
         # Save model to file
         a1.model.save("model.h5")
-
-        sys.exit()
+        file_score.close()
 
 if __name__ == "__main__":
     main()

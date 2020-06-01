@@ -16,13 +16,13 @@ class Agent:
             # vstupna vsrtva pre state
             state_input = Input(shape=state_dim)
 
-            l1 = Dense(32, use_bias=True, kernel_initializer='he_uniform')(state_input)
+            l1 = Dense(24, use_bias=True, kernel_initializer='he_uniform')(state_input)
             l1 = PReLU(alpha_initializer='zeros')(l1)
 
-            l2 = Dense(64, use_bias=True, kernel_initializer='he_uniform')(l1)
+            l2 = Dense(48, use_bias=True, kernel_initializer='he_uniform')(l1)
             l2 = PReLU(alpha_initializer='zeros')(l2)
 
-            l3 = Dense(32, use_bias=True, kernel_initializer='he_uniform')(l2)
+            l3 = Dense(24, use_bias=True, kernel_initializer='he_uniform')(l2)
             l3 = PReLU(alpha_initializer='zeros')(l3)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
