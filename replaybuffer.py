@@ -2,7 +2,7 @@ import numpy as np
 from collections import deque
 
 class ReplayBuffer:
-    def __init__(self, max_size=5e4):
+    def __init__(self, max_size=1e6):
         self.max_size = int(max_size)
         self.buffer = deque(maxlen=self.max_size)
     

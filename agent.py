@@ -35,6 +35,8 @@ class Agent:
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
 
             model.summary()
+
+            print("Created successful")
         else:
             model = tf.keras.models.load_model(fileName, compile=False)
 
@@ -42,6 +44,8 @@ class Agent:
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
 
             model.summary()
+
+            print("Loaded successful")
 
         return model
     
@@ -72,7 +76,7 @@ class Agent:
         #print(targets, targets.shape)
         
         # pretrenuj model
-        self.model.fit(states, targets, batch_size=batch_size, epochs=1, verbose=0, callbacks=[WandbCallback()])
+        self.model.fit(states, targets, batch_size=batch_size, epochs=1, verbose=0, callbacks=[WandbCallback(log_weights=True)])
 
         # pretrenuj target siet
         self.target_train(0.01)

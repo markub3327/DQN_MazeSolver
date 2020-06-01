@@ -22,7 +22,7 @@ def main(test=False):
         else:
             epsilon = 0.0
             
-        time_max = 1000000;
+        time_max = 1000;
     
         if (test == False):
             a1 = Agent(26, 4)
@@ -53,10 +53,10 @@ def main(test=False):
 
             score = 0.0;
             for step in range(100):
-                if (episode % 20 == 0):
+                if (episode % 100 == 0):
                     env1.render()
 
-                if test == False and np.random.rand() < epsilon:
+                if np.random.rand() < epsilon:
                     action = env1.sample()
                 else:            
                     action = np.argmax(a1.predict(state))
@@ -65,13 +65,13 @@ def main(test=False):
                 next_state = next_state.reshape((1, next_state.shape[0]))
                 #print(next_state, next_state.shape)
 
-                replay_buffer.add((np.squeeze(state), action, reward, np.squeeze(next_state), float(done)))
-
                 score += reward
 
-                a1.train(replay_buffer)
+                if (test == False):
+                    replay_buffer.add((np.squeeze(state), action, reward, np.squeeze(next_state), float(done)))
+                    a1.train(replay_buffer)
 
-                if (episode % 20 == 0):
+                if (episode % 100 == 0):
                     print(f"stav: {state}")
                     print(f"akcia: {action}")
                     print(f"odmena: {reward}")
@@ -87,7 +87,7 @@ def main(test=False):
                 if (done == True):
                     break
         
-            wandb.log({"score": score, "epoch": episode})
+            wandb.log({"score": score})
             file_score.write(f"{score}\n")
 
             # zniz podiel nahody na akciach
@@ -103,4 +103,4 @@ def main(test=False):
         file_score.close()
 
 if __name__ == "__main__":
-    main()
+    main(True)
