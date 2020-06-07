@@ -7,22 +7,19 @@ import numpy as np
 import sys
 import os
 import wandb
-import gym
 
 def main(test=False):
     try:
         wandb.init(project="dqn_maze")
 
-        file_score = open("score.txt", "w")
-
         if (test == False):
             epsilon = 1.0
-            epsilon_decay = 0.9999
+            epsilon_decay = 0.9995
             epsilon_min = 0.01
         else:
             epsilon = 0.0
             
-        time_max = 1000;
+        time_max = 10000
     
         if (test == False):
             a1 = Agent(26, 4)
@@ -34,14 +31,14 @@ def main(test=False):
         env1 = Prostredie(10, 10, 
         [ 
             0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             0, 1, 0, 0, 1, 1, 0, 1, 0, 0,
-            0, 2, 0, 0, 0, 1, 2, 1, 0, 0,
-            0, 0, 0, 1, 0, 3, 0, 1, 0, 0,
+            0, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+            0, 0, 0, 1, 0, 1, 0, 1, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             0, 1, 0, 0, 0, 1, 0, 0, 1, 0,
-            0, 3, 1, 1, 1, 1, 0, 0, 1, 0,
-            0, 1, 0, 2, 0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 1, 0, 0, 1, 0,
+            0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
             0, 1, 0, 0, 0, 1, 0, 0, 4, 0,
         ])
         
@@ -51,8 +48,8 @@ def main(test=False):
             state = state.reshape((1, state.shape[0]))
             #print(state, state.shape)
 
-            score = 0.0;
-            for step in range(100):
+            score = 0.0
+            for step in range(50):
                 if (episode % 100 == 0):
                     env1.render()
 
@@ -88,7 +85,6 @@ def main(test=False):
                     break
         
             wandb.log({"score": score})
-            file_score.write(f"{score}\n")
 
             # zniz podiel nahody na akciach
             if (test == False and epsilon > epsilon_min):
@@ -98,9 +94,9 @@ def main(test=False):
         print("Game terminated")
         sys.exit()
     finally:
-        # Save model to file
-        a1.model.save("model.h5")
-        file_score.close()
+        if (test == False):
+            # Save model to file
+            a1.model.save("model.h5")
 
 if __name__ == "__main__":
-    main(True)
+    main()

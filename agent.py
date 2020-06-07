@@ -52,7 +52,7 @@ class Agent:
     def predict(self, state):
         return self.model.predict(state)[0]
     
-    def train(self, replay_buffer, batch_size=32, gamma=0.90):
+    def train(self, replay_buffer, batch_size=32, gamma=0.99):
         if len(replay_buffer.buffer) < batch_size: 
             return
 

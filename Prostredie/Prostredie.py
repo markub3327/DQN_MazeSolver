@@ -42,13 +42,13 @@ class Prostredie:
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
-                return -1.00;    # Smrt
+                return -100.00;    # Smrt
             elif (self.getId(x, y) == Jablko.Tag):
                 return +0.10;     # Jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.30;     # Mina (trest)
+                return -0.50;     # Mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
-                return +1.00;    # Dalsi level      
+                return +100.00;    # Dalsi level      
             else:
                 return -0.04;   # Najkratsia cesta k vychodu
 
