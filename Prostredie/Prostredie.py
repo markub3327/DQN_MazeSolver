@@ -1,11 +1,12 @@
-from Prostredie.EnvItem import *
 import numpy as np
 import os
+import random
+
+from Prostredie.EnvItem import *
 
 class Prostredie:
-    # Zacina v bode [0,1]
-    startPositionX = 0
-    startPositionY = 1
+    # Startovacie body
+    startPositions = [(0,1), (9,1), (0,5)]
     
     # body v bludisku 
     prostredie = []
@@ -13,8 +14,8 @@ class Prostredie:
     def __init__(self, area_width, area_height, prostredie=None):
         self.area_width = area_width
         self.area_height = area_height
-        self.currentPositionX = self.startPositionX
-        self.currentPositionY = self.startPositionY
+        self.currentPositionX = None
+        self.currentPositionY = None
         
         if (prostredie != None):
             for i in range(area_height * area_width):
@@ -38,19 +39,19 @@ class Prostredie:
                 y = np.random.randint(1, self.area_height-1)
 
             # prepis novou polozkou sveta
-            self.prostredie[y*self.area_width + x] = item;
+            self.prostredie[y*self.area_width + x] = item
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
-                return -100.00;    # Smrt
+                return -1.00    # Smrt
             elif (self.getId(x, y) == Jablko.Tag):
-                return +0.10;     # Jablcko (odmena)
+                return +0.10    # Jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.50;     # Mina (trest)
+                return -0.20    # Mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
-                return +100.00;    # Dalsi level      
+                return +1.00    # Dalsi level      
             else:
-                return -0.04;   # Najkratsia cesta k vychodu
+                return -0.001   # Najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -68,27 +69,28 @@ class Prostredie:
                 for x in range(self.area_width):
                     if (self.currentPositionX == x and self.currentPositionY == y):
                         # Vykresli agenta
-                        print("|\033[0;43;30m A \033[0m", end='');
+                        print("|\033[0;103;30m A \033[0m", end='')
                     else:                       
                         print(f"|{self.prostredie[y*self.area_width + x]}", end='')
                    
-                print("|");
+                print("|")
                 for i in range(self.area_width * 4 + 1):
                     print('-', end='')
                 print()
 
     def reset(self):  
-        self.currentPositionX = self.startPositionX
-        self.currentPositionY = self.startPositionY
+        pos = random.choice(self.startPositions)
+        self.currentPositionX = pos[0]
+        self.currentPositionY = pos[1]
         
         # Vymaz vsetky jablka a miny
         self.NahradObjekty(Jablko.Tag, Cesta())
         self.NahradObjekty(Mina.Tag, Cesta())
 
-        for i in range(4):
+        for i in range(random.randint(1,5)):
             self.GenerateItem(Jablko())
         
-        for i in range(3):
+        for i in range(random.randint(1,5)):
             self.GenerateItem(Mina())
 
         state = [
@@ -131,7 +133,7 @@ class Prostredie:
         ]
         state.extend(self.Radar())
 
-        done = True if (self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag or self.getId(self.currentPositionX, self.currentPositionY) == Priepast.Tag) else False                ;
+        done = True if self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag else False
 
         # Agent zobral jablko
         if (self.getId(self.currentPositionX, self.currentPositionY) == Jablko.Tag):
