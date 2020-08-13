@@ -16,9 +16,9 @@ class Agent:
             # vstupna vsrtva pre state
             state_input = Input(shape=state_dim)
 
-            l1 = NoisyDense(64, activation='swish')(state_input)
-            l2 = NoisyDense(64, activation='swish')(l1)
-            l3 = NoisyDense(64, activation='swish')(l1)
+            l1 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(state_input)
+            l2 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(l1)
+            l3 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(l1)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
             output = NoisyDense(action_dim, activation='linear')(l3)
