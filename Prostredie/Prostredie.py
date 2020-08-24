@@ -47,11 +47,11 @@ class Prostredie:
             elif (self.getId(x, y) == Jablko.Tag):
                 return +0.10    # Jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.20    # Mina (trest)
+                return -0.15    # Mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
                 return +1.00    # Dalsi level      
             else:
-                return -0.001   # Najkratsia cesta k vychodu
+                return -0.04    # Najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -121,11 +121,18 @@ class Prostredie:
 
         #print(action, self.currentPositionX, self.currentPositionY)
 
+        # skontroluj spravnost kroku v hre
         if (self.JeMimoAreny(self.currentPositionX, self.currentPositionY, 10, 10)):
             self.currentPositionX = oldX
             self.currentPositionY = oldY                
        
-        reward = self.Hodnotenie(self.currentPositionX, self.currentPositionY)
+            reward = -50.0
+            done = True   # koniec hry
+        else:
+            reward = self.Hodnotenie(self.currentPositionX, self.currentPositionY)
+
+            # hra konci najdenim ciela
+            done = True if self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag else False
 
         state = [
             self.currentPositionX/10.0,
@@ -133,7 +140,6 @@ class Prostredie:
         ]
         state.extend(self.Radar())
 
-        done = True if self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag else False
 
         # Agent zobral jablko
         if (self.getId(self.currentPositionX, self.currentPositionY) == Jablko.Tag):

@@ -1,8 +1,9 @@
-from tensorflow.keras import Model
 import tensorflow as tf
-from tensorflow.keras.layers import Input, NoisyDense
-from wandb.keras import WandbCallback
 import numpy as np
+
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense, Input, PReLU
+from tensorflow.keras.utils import plot_model
 
 class Agent:
     def __init__(self, state_dim, action_dim, fileName=None):
@@ -16,18 +17,17 @@ class Agent:
             # vstupna vsrtva pre state
             state_input = Input(shape=state_dim)
 
-            l1 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(state_input)
-            l2 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(l1)
-            l3 = NoisyDense(64, activation='swish', kernel_initializer='he_uniform')(l1)
+            l1 = Dense(128, activation='swish', kernel_initializer='he_uniform')(state_input)
+            l2 = Dense(128, activation='swish', kernel_initializer='he_uniform')(l1)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-            output = NoisyDense(action_dim, activation='linear')(l3)
+            output = Dense(action_dim, activation='linear', use_bias=True, kernel_initializer='glorot_uniform')(l2)
 
             # Vytvor model
             model = Model(inputs=state_input, outputs=output)
 
             # Skompiluj model
-            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
+            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr, amsgrad=True), loss='mse')
 
             model.summary()
 
@@ -47,41 +47,38 @@ class Agent:
     def predict(self, state):
         return self.model.predict(state)[0]
     
-    def train(self, replay_buffer, batch_size=32):
-        if len(replay_buffer.buffer) < batch_size: 
-            return
-
-        states, actions, rewards, next_states, dones, gammas = replay_buffer.sample(batch_size)
-        #print(states.shape)
-        #print(actions.shape)
-        #print(rewards.shape)
-        #print(next_states.shape)
-        #print(dones.shape)
-        #print(gammas.shape)
+    def prepare_sample(self, replay_buffer, batch_size, gamma):
+        states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
         targets = self.model.predict(states)
         #print(targets, targets.shape)
-
-        # vygeneruj sum pre target siet
-        for i in range(len(self.target_model.layers)):
-            l = self.target_model.layers[i]
-            if 'noisy_dense' in l.name:
-                l.reset_noise()  
 
         # predikuj buduce akcie podla target siete
         Q_futures = self.target_model.predict(next_states).max(axis=1)
         #print(Q_futures, Q_futures.shape)
 
         # vypocitaj TD error
-        targets[(np.arange(batch_size), actions)] = rewards + ((1-dones) * gammas * Q_futures)
+        targets[(np.arange(batch_size), actions)] = rewards + ((1-dones) * gamma * Q_futures)
         #print(targets, targets.shape)
+
+        return states, targets
+
+    def train(self, replay_buffer_train, replay_buffer_test=None, batch_size=32, gamma=0.95):
+        if len(replay_buffer_train.buffer) < batch_size or len(replay_buffer_test.buffer) < batch_size: 
+            return [0.0], [0.0]
+
+        s_train, t_train = self.prepare_sample(replay_buffer_train, batch_size, gamma)
+        if replay_buffer_test != None:
+            s_test, t_test = self.prepare_sample(replay_buffer_test, batch_size, gamma)
         
         # pretrenuj model
-        self.model.fit(states, targets, batch_size=batch_size, epochs=1, verbose=0, callbacks=[WandbCallback()])
+        history = self.model.fit(s_train, t_train, batch_size=batch_size, validation_data=(s_test, t_test), epochs=1, verbose=0)
 
         # pretrenuj target siet
         self.target_train(0.01)
+
+        return history.history['loss'], history.history['val_loss']
 
     def target_train(self, tau):
         weights = self.model.get_weights()
@@ -90,9 +87,5 @@ class Agent:
             target_weights[i] = weights[i] * tau + target_weights[i] * (1 - tau)
         self.target_model.set_weights(target_weights)
 
-    # Resets noisy weights in all linear layers (of online net only)
-    def reset_noise(self):
-        for i in range(len(self.model.layers)):
-            l = self.model.layers[i]
-            if 'noisy_dense' in l.name:
-                l.reset_noise()  
+    def save_plot(self, path='model.png'):
+        plot_model(self.model, path)
