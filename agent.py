@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Input, PReLU
+from tensorflow.keras.layers import NoisyDense, Input, PReLU
 from tensorflow.keras.utils import plot_model
 
 class Agent:
@@ -17,11 +17,11 @@ class Agent:
             # vstupna vsrtva pre state
             state_input = Input(shape=state_dim)
 
-            l1 = Dense(128, activation='swish', kernel_initializer='he_uniform')(state_input)
-            l2 = Dense(128, activation='swish', kernel_initializer='he_uniform')(l1)
+            l1 = NoisyDense(128, activation='swish', kernel_initializer='he_uniform')(state_input)
+            l2 = NoisyDense(128, activation='swish', kernel_initializer='he_uniform')(l1)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-            output = Dense(action_dim, activation='linear', use_bias=True, kernel_initializer='glorot_uniform')(l2)
+            output = NoisyDense(action_dim, activation='linear', use_bias=True, kernel_initializer='glorot_uniform')(l2)
 
             # Vytvor model
             model = Model(inputs=state_input, outputs=output)
@@ -47,12 +47,23 @@ class Agent:
     def predict(self, state):
         return self.model.predict(state)[0]
     
+    def reset_noise_target(self):
+        for l in self.target_model.layers[1:]:
+            l.reset_noise()
+
+    def reset_noise(self):
+        for l in self.model.layers[1:]:
+            l.reset_noise()
+
     def prepare_sample(self, replay_buffer, batch_size, gamma):
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
         targets = self.model.predict(states)
         #print(targets, targets.shape)
+
+        # reset Q target net's noise params
+        self.reset_noise_target()
 
         # predikuj buduce akcie podla target siete
         Q_futures = self.target_model.predict(next_states).max(axis=1)
@@ -64,7 +75,7 @@ class Agent:
 
         return states, targets
 
-    def train(self, replay_buffer_train, replay_buffer_test=None, batch_size=32, gamma=0.95):
+    def train(self, replay_buffer_train, replay_buffer_test=None, batch_size=16, gamma=0.95):
         if len(replay_buffer_train.buffer) < batch_size or len(replay_buffer_test.buffer) < batch_size: 
             return [0.0], [0.0]
 

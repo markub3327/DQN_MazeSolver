@@ -12,13 +12,6 @@ def main(test=False):
     try:
         wandb.init(project="dqn_maze")
 
-        if (test == False):
-            epsilon = 1.0
-            epsilon_decay = 0.9995
-            epsilon_min = 0.01
-        else:
-            epsilon = 0.0
-            
         time_max = 10000
 
         if (test == False):
@@ -59,10 +52,10 @@ def main(test=False):
                 if test == True or (episode % 100 == 0):
                     env1.render()
 
-                if np.random.rand() < epsilon:
-                    action = env1.sample()
-                else:
-                    action = np.argmax(a1.predict(state))
+                # reset Q net's noise params
+                a1.reset_noise()
+
+                action = np.argmax(a1.predict(state))
             
                 next_state, reward, done = env1.step(action)
                 #print(next_state, next_state.shape)
@@ -87,7 +80,6 @@ def main(test=False):
                     print(f"step: {step}")
                     print(f"replay_buffer_train: {len(replay_buffer_train.buffer)}")
                     print(f"replay_buffer_test: {len(replay_buffer_test.buffer)}")
-                    print(f"epsilon: {epsilon}")
                     print(f"epoch: {episode}/{time_max}")
                     print(f"score: {score}")
 
@@ -98,10 +90,6 @@ def main(test=False):
                     avg_val_loss /= step
                     break
         
-            # zniz podiel nahody na akciach
-            if (test == False and epsilon > epsilon_min):
-                epsilon *= epsilon_decay
-
             wandb.log({"score": score, "loss": avg_loss, "val_loss": avg_val_loss, "epoch": episode})
 
     except KeyboardInterrupt:

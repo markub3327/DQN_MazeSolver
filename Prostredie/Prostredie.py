@@ -43,15 +43,15 @@ class Prostredie:
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
-                return -1.00    # Smrt
+                return -0.75    # zakazana zona
             elif (self.getId(x, y) == Jablko.Tag):
-                return +0.10    # Jablcko (odmena)
+                return +0.10    # jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.15    # Mina (trest)
+                return -0.15    # mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
-                return +1.00    # Dalsi level      
+                return +1.00    # vychod z bludiska      
             else:
-                return -0.04    # Najkratsia cesta k vychodu
+                return -0.04    # najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -126,7 +126,7 @@ class Prostredie:
             self.currentPositionX = oldX
             self.currentPositionY = oldY                
        
-            reward = -50.0
+            reward = -1.00
             done = True   # koniec hry
         else:
             reward = self.Hodnotenie(self.currentPositionX, self.currentPositionY)
