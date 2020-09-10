@@ -34,7 +34,7 @@ class Prostredie:
             x = np.random.randint(1, self.area_width-1)
             y = np.random.randint(1, self.area_height-1)
 
-            while (self.getId(x, y) != Cesta.Tag):
+            while (self.getId(x, y) != Cesta.Tag) or ((x == 8 and y >= 5) or (y == 1) or (y == 5)):
                 x = np.random.randint(1, self.area_width-1)
                 y = np.random.randint(1, self.area_height-1)
 
@@ -43,15 +43,15 @@ class Prostredie:
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
-                return -0.75    # zakazana zona
+                return -0.75     # zakazana zona
             elif (self.getId(x, y) == Jablko.Tag):
-                return +0.10    # jablcko (odmena)
+                return +0.20     # jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.15    # mina (trest)
+                return -0.25     # mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
-                return +1.00    # vychod z bludiska      
+                return +1.00     # vychod z bludiska      
             else:
-                return -0.04    # najkratsia cesta k vychodu
+                return -0.01    # najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -87,11 +87,15 @@ class Prostredie:
         self.NahradObjekty(Jablko.Tag, Cesta())
         self.NahradObjekty(Mina.Tag, Cesta())
 
-        for i in range(random.randint(1,5)):
+        self.count_apple = random.randint(3,5)
+        for i in range(self.count_apple):
             self.GenerateItem(Jablko())
         
-        for i in range(random.randint(1,5)):
+        self.count_mine = random.randint(3,5)
+        for i in range(self.count_mine):
             self.GenerateItem(Mina())
+
+        self.apples, self.mines = 0, 0
 
         state = [
             self.currentPositionX/10.0,
@@ -121,6 +125,8 @@ class Prostredie:
 
         #print(action, self.currentPositionX, self.currentPositionY)
 
+        nasiel_ciel = 0
+
         # skontroluj spravnost kroku v hre
         if (self.JeMimoAreny(self.currentPositionX, self.currentPositionY, 10, 10)):
             self.currentPositionX = oldX
@@ -132,7 +138,11 @@ class Prostredie:
             reward = self.Hodnotenie(self.currentPositionX, self.currentPositionY)
 
             # hra konci najdenim ciela
-            done = True if self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag else False
+            if self.getId(self.currentPositionX, self.currentPositionY) == Vychod.Tag:
+                done = True
+                nasiel_ciel = 1
+            else:
+                done = False
 
         state = [
             self.currentPositionX/10.0,
@@ -144,12 +154,14 @@ class Prostredie:
         # Agent zobral jablko
         if (self.getId(self.currentPositionX, self.currentPositionY) == Jablko.Tag):
             self.prostredie[self.currentPositionY*self.area_width + self.currentPositionX] = Cesta()
-                                                
+            self.apples += 1
+
         # Agent aktivoval minu
         if (self.getId(self.currentPositionX, self.currentPositionY) == Mina.Tag):
             self.prostredie[self.currentPositionY*self.area_width + self.currentPositionX] = Cesta()
+            self.mines += 1
 
-        return (np.array(state), reward, done)
+        return (np.array(state), reward, done, {'apples': self.apples, 'mines': self.mines, 'end': nasiel_ciel})
     
     def getId(self, x, y):
         return self.prostredie[y*self.area_width + x].id
@@ -158,13 +170,13 @@ class Prostredie:
         if (self.getId(x, y) == Priepast.Tag):
             return [0, 0, 0]
         elif (self.getId(x, y) == Jablko.Tag):
-            return [0, 1, 0]
-        elif (self.getId(x, y) == Mina.Tag):
-            return [0, 1, 1]
-        elif (self.getId(x, y) == Cesta.Tag):
-            return [0, 0, 1]
-        elif (self.getId(x, y) == Vychod.Tag):
             return [1, 0, 0]
+        elif (self.getId(x, y) == Mina.Tag):
+            return [0, 0, 1]
+        elif (self.getId(x, y) == Cesta.Tag):
+            return [0, 1, 0]
+        elif (self.getId(x, y) == Vychod.Tag):
+            return [1, 1, 1]
 
     def Radar(self):
         scan = []

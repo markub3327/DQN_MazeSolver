@@ -2,6 +2,7 @@
 import sys
 import os
 import wandb
+import time
 
 from Prostredie.Prostredie import Prostredie
 from Prostredie.EnvItem import *
@@ -10,46 +11,57 @@ from replaybuffer import ReplayBuffer
 
 def main(test=False):
     try:
-        wandb.init(project="dqn_maze")
+        # init wandb cloud
+        if (test == False):
+            wandb.init(project="dqn_maze")
 
-        time_max = 10000
+            wandb.config.batch_size = 32
+            wandb.config.gamma = 0.95
+            wandb.config.h1 = 1024
+            wandb.config.h2 = 1024
+            wandb.config.lr = 0.001
+            wandb.config.tau = 0.01
+
+        time_max = 2500
 
         if (test == False):
-            a1 = Agent(26, 4)
+            a1 = Agent(26, 4, wandb.config.lr)
         else:
-            a1 = Agent(26, 4, "model.h5")
+            a1 = Agent(26, 4, 0.0, "model.h5")
 
         # uloz model do obrazku
         a1.save_plot()
 
-        # vytvor dva datasety pre vypocitanie val_loss
-        replay_buffer_train = ReplayBuffer()
-        replay_buffer_test = ReplayBuffer()
+        # experiences replay buffer
+        replay_buffer = ReplayBuffer()
 
+        # generate env
         env1 = Prostredie(10, 10, 
         [ 
             0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             0, 1, 0, 0, 0, 1, 0, 1, 0, 1,
-            0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 1, 0, 0,
             1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            0, 1, 0, 0, 0, 1, 0, 0, 1, 0,
-            0, 1, 1, 1, 1, 1, 0, 0, 1, 0,
             0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
+            0, 1, 1, 1, 1, 1, 0, 0, 1, 0,
+            0, 1, 0, 1, 0, 1, 1, 0, 1, 0,
             0, 1, 1, 1, 0, 1, 0, 0, 4, 0,
         ])
         
         # Trening agenta
-        for episode in range(1,time_max):
+        for episode in range(1,time_max+1):
+            start_time = time.time()
+
             state = env1.reset()
             state = np.expand_dims(state, axis=0)
-            #print(state, state.shape)
 
-            score, avg_loss, avg_val_loss = 0.0, 0.0, 0.0
+            # reset score
+            score = 0.0
 
-            for step in range(1,100):
-                if test == True or (episode % 100 == 0):
+            for step in range(1,101):
+                if test == True:
                     env1.render()
 
                 # reset Q net's noise params
@@ -57,40 +69,42 @@ def main(test=False):
 
                 action = np.argmax(a1.predict(state))
             
-                next_state, reward, done = env1.step(action)
-                #print(next_state, next_state.shape)
+                next_state, reward, done, info = env1.step(action)
 
                 score += reward
 
                 if (test == False):
-                    if (np.random.uniform() <= 0.20):
-                        replay_buffer_test.add((np.squeeze(state), action, reward, next_state, float(done)))
-                    else:
-                        replay_buffer_train.add((np.squeeze(state), action, reward, next_state, float(done)))
+                    replay_buffer.add((np.squeeze(state), action, reward, next_state, float(done)))
 
-                    loss, val_loss = a1.train(replay_buffer_train, replay_buffer_test)
-                    avg_loss += loss[0]
-                    avg_val_loss += val_loss[0]
-
-                if test == True or (episode % 100 == 0):
+                    loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
+                    wandb.log({"loss": loss[0]})
+                else:
                     print(f"stav: {state}")
                     print(f"akcia: {action}")
                     print(f"odmena: {reward}")
                     print(f"done: {done}")
                     print(f"step: {step}")
-                    print(f"replay_buffer_train: {len(replay_buffer_train.buffer)}")
-                    print(f"replay_buffer_test: {len(replay_buffer_test.buffer)}")
+                    print(f"replay_buffer_train: {len(replay_buffer.buffer)}")
                     print(f"epoch: {episode}/{time_max}")
                     print(f"score: {score}")
-
+                    print(f"apples: {info['apples']}/{env1.count_apple}")
+                    print(f"mines: {info['mines']}/{env1.count_mine}")
+                
+                # critical
                 state = np.expand_dims(next_state, axis=0)
  
                 if done == True:
-                    avg_loss /= step
-                    avg_val_loss /= step
                     break
-        
-            wandb.log({"score": score, "loss": avg_loss, "val_loss": avg_val_loss, "epoch": episode})
+
+            if (test == False):
+                wandb.log({"epoch": episode,
+                           "score": score, 
+                           "steps": step,
+                           "replay_buffer": len(replay_buffer.buffer),
+                           "time": time.time()-start_time,
+                           "apple": (info['apples'] / env1.count_apple) * 100.0,
+                           "mine": (info['mines'] / env1.count_mine) * 100.0,
+                           "end": info['end'] * 100.0})
 
     except KeyboardInterrupt:
         print("Game terminated")
