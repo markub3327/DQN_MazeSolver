@@ -81,7 +81,8 @@ def main(test=False):
                     replay_buffer.add((np.squeeze(state), action, reward, next_state, float(done)))
 
                     loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
-                    wandb.log({"loss": loss[0]})
+                    if loss is not None:
+                        wandb.log({"loss": loss[0]})
                 else:
                     print(f"stav: {state}")
                     print(f"akcia: {action}")

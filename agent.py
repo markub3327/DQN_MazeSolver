@@ -57,7 +57,7 @@ class Agent:
 
     def train(self, replay_buffer, batch_size, gamma, tau):
         if len(replay_buffer.buffer) < batch_size:
-            return [0.0]
+            return None
 
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
