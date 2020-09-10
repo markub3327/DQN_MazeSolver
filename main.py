@@ -3,6 +3,7 @@ import sys
 import os
 import wandb
 import time
+import statistics
 
 from Prostredie.Prostredie import Prostredie
 from Prostredie.EnvItem import *
@@ -23,6 +24,9 @@ def main(test=False):
             wandb.config.tau = 0.01
 
         time_max = 2500
+
+        # log
+        score_buff = []
 
         if (test == False):
             a1 = Agent(26, 4, wandb.config.lr)
@@ -96,22 +100,33 @@ def main(test=False):
                 if done == True:
                     break
 
+            # statistics
             if (test == False):
-                wandb.log({"epoch": episode,
-                           "score": score, 
-                           "steps": step,
-                           "replay_buffer": len(replay_buffer.buffer),
-                           "time": time.time()-start_time,
-                           "apple": (info['apples'] / env1.count_apple) * 100.0,
-                           "mine": (info['mines'] / env1.count_mine) * 100.0,
-                           "end": info['end'] * 100.0})
+                log_dict = {'epoch': episode,
+                            'score': score, 
+                            'steps': step,
+                            'replay_buffer': len(replay_buffer.buffer),
+                            'time': time.time()-start_time,
+                            'apple': (info['apples'] / env1.count_apple) * 100.0,
+                            'mine': (info['mines'] / env1.count_mine) * 100.0,
+                            'end': info['end'] * 100.0}
+
+                if episode >= (time_max - 1000):
+                    score_buff.append(score)
+                    if len(score_buff) > 1:
+                        log_dict['avg_score'] = statistics.fmean(score_buff)
+                        log_dict['stdev_score'] = statistics.stdev(score_buff)
+
+                wandb.log(log_dict)
 
     except KeyboardInterrupt:
         print("Game terminated")
         sys.exit()
     finally:
+        print(len(score_buff))
+
+        # Save model to file
         if (test == False):
-            # Save model to file
             a1.model.save("model.h5")
 
 if __name__ == "__main__":
