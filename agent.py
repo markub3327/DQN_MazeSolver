@@ -6,22 +6,23 @@ from tensorflow.keras.layers import NoisyDense, Input, PReLU
 from tensorflow.keras.utils import plot_model
 
 class Agent:
-    def __init__(self, state_dim, action_dim, lr, fileName=None):
-        self.model = self.create_network(state_dim, action_dim, fileName, lr)
-        self.target_model = self.create_network(state_dim, action_dim, fileName, lr)
+    def __init__(self, state_dim, action_dim, hidden, lr, fileName=None):
+        self.model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
+        self.target_model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
 
         self.target_train(1.0)
 
-    def create_network(self, state_dim, action_dim, fileName, lr):
+    def create_network(self, state_dim, action_dim, hidden, fileName, lr):
         if (fileName == None):
             # vstupna vsrtva pre state
             state_input = Input(shape=state_dim)
 
-            l1 = NoisyDense(1024, activation='swish', kernel_initializer='he_uniform')(state_input)
-            l2 = NoisyDense(1024, activation='swish', kernel_initializer='he_uniform')(l1)
+            l = state_input
+            for i in range(len(hidden)):
+                l = NoisyDense(hidden[i], activation='swish', kernel_initializer='he_uniform')(l)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-            output = NoisyDense(action_dim, activation='linear', use_bias=True, kernel_initializer='glorot_uniform')(l2)
+            output = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')(l)
 
             # Vytvor model
             model = Model(inputs=state_input, outputs=output)

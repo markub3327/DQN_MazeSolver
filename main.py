@@ -18,20 +18,17 @@ def main(test=False):
 
             wandb.config.batch_size = 32
             wandb.config.gamma = 0.95
-            wandb.config.h1 = 1024
-            wandb.config.h2 = 1024
+            wandb.config.h1 = 4
+            wandb.config.h2 = 4
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
 
-        time_max = 2500
-
-        # log
-        score_buff = []
+        time_max = 1000
 
         if (test == False):
-            a1 = Agent(26, 4, wandb.config.lr)
+            a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], wandb.config.lr)
         else:
-            a1 = Agent(26, 4, 0.0, "model.h5")
+            a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], 0.0, "model.h5")
 
         # uloz model do obrazku
         a1.save_plot()
@@ -62,7 +59,7 @@ def main(test=False):
             state = np.expand_dims(state, axis=0)
 
             # reset score
-            score = 0.0
+            score, avg_loss = 0.0, 0.0
 
             for step in range(1,101):
                 if test == True:
@@ -82,7 +79,7 @@ def main(test=False):
 
                     loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
                     if loss is not None:
-                        wandb.log({"loss": loss[0]})
+                        avg_loss += loss[0]
                 else:
                     print(f"stav: {state}")
                     print(f"akcia: {action}")
@@ -102,21 +99,18 @@ def main(test=False):
                     break
 
             # statistics
+            avg_loss /= step
+             
             if (test == False):
                 log_dict = {'epoch': episode,
                             'score': score, 
                             'steps': step,
+                            'loss': avg_loss,
                             'replay_buffer': len(replay_buffer.buffer),
                             'time': time.time()-start_time,
                             'apple': (info['apples'] / env1.count_apple) * 100.0,
                             'mine': (info['mines'] / env1.count_mine) * 100.0,
                             'end': info['end'] * 100.0}
-
-                if episode >= (time_max - 1000):
-                    score_buff.append(score)
-                    if len(score_buff) > 1:
-                        log_dict['avg_score'] = statistics.fmean(score_buff)
-                        log_dict['stdev_score'] = statistics.stdev(score_buff)
 
                 wandb.log(log_dict)
 
@@ -124,8 +118,6 @@ def main(test=False):
         print("Game terminated")
         sys.exit()
     finally:
-        print(len(score_buff))
-
         # Save model to file
         if (test == False):
             a1.model.save("model.h5")

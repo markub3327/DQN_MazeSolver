@@ -1,0 +1,113 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Average History Plot",
+    "title": "XXX",
+    "width": 500,
+    "height": 400,
+    "padding": 5,
+    "autosize": "fit",
+  
+    "data": [
+      {
+        "name": "wandb",
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum.${field:x} >= 500 && datum.${field:x} <= 1000"
+          }
+        ]
+      },
+      {
+        "name": "grouped",
+        "source": "wandb",
+        "transform": [
+          {
+            "type": "aggregate",
+            "groupby": ["${field:group}"],
+            "fields": ["${field:y}"],
+            "ops": ["average"]
+          }         
+        ]      
+      },
+      {
+          "name": "fields",
+          "values": [
+            "h1",
+            "h2",
+            "score"
+          ]
+        }
+    ],
+  
+    "scales": [
+      {
+        "name": "ord", "type": "point",
+        "range": "width", "round": true,
+        "domain": {"data": "fields", "field": "data"}
+      },
+      {
+        "name": "h1", "type": "linear",
+        "range": "height", "zero": false, "nice": true,
+        "domain": {"data": "grouped", "field": "${field:h1}"}
+      },
+      {
+        "name": "h2", "type": "linear",
+        "range": "height", "zero": false, "nice": true,
+        "domain": {"data": "grouped", "field": "${field:h2}"}
+      },
+      {
+        "name": "score", "type": "linear",
+        "range": "height", "zero": false, "nice": true,
+        "domain": {"data": "grouped", "field": "average_${field:y}"}
+      }    
+    ],
+  
+    "axes": [    
+      { 
+        "orient": "left",
+        "zindex": 1,      
+        "scale": "h1",
+        "title": "h1",
+        "offset": {"scale": "ord", "value": "h1", "mult": -1}
+      },
+      { 
+        "orient": "left",
+        "zindex": 1,      
+        "scale": "h2",
+        "title": "h2",
+        "offset": {"scale": "ord", "value": "h2", "mult": -1}
+      },
+      { 
+        "orient": "left",
+        "zindex": 1,      
+        "scale": "score",
+        "title": "score",
+        "offset": {"scale": "ord", "value": "score", "mult": -1}
+      }
+    ],
+  
+    "marks": [
+      {
+          "type": "group",
+          "from": {"data": "grouped"},
+          "marks": [
+            {
+              "type": "line",
+              "from": {"data": "fields"},
+              "encode": {
+                "enter": {
+                  "x": {"scale": "ord", "field": "data"},
+                  "y": {
+                    "scale": {"datum": "data"},
+                    "field": {"parent": {"datum": "data"}}
+                  },
+                  "stroke": {"value": "steelblue"},
+                  "strokeWidth": {"value": 1.01},
+                  "strokeOpacity": {"value": 0.3}
+                }
+              }
+            }
+          ]
+      }
+    ]
+  }

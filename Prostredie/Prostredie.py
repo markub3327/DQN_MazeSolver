@@ -51,7 +51,7 @@ class Prostredie:
             elif (self.getId(x, y) == Vychod.Tag):
                 return +1.00     # vychod z bludiska      
             else:
-                return -0.01    # najkratsia cesta k vychodu
+                return -0.015    # najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -78,7 +78,7 @@ class Prostredie:
                     print('-', end='')
                 print()
 
-    def reset(self):  
+    def reset(self):
         pos = random.choice(self.startPositions)
         self.currentPositionX = pos[0]
         self.currentPositionY = pos[1]
@@ -87,11 +87,13 @@ class Prostredie:
         self.NahradObjekty(Jablko.Tag, Cesta())
         self.NahradObjekty(Mina.Tag, Cesta())
 
+        # generator jablk
         self.count_apple = random.randint(3,5)
         for i in range(self.count_apple):
             self.GenerateItem(Jablko())
         
-        self.count_mine = random.randint(3,5)
+        # generator min
+        self.count_mine = random.randint(1,3)
         for i in range(self.count_mine):
             self.GenerateItem(Mina())
 
