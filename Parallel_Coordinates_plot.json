@@ -1,113 +1,130 @@
 {
-    "$schema": "https://vega.github.io/schema/vega/v5.json",
-    "description": "Average History Plot",
-    "title": "XXX",
-    "width": 500,
-    "height": 400,
-    "padding": 5,
-    "autosize": "fit",
-  
-    "data": [
-      {
-        "name": "wandb",
-        "transform": [
-          {
-            "type": "filter",
-            "expr": "datum.${field:x} >= 500 && datum.${field:x} <= 1000"
-          }
-        ]
-      },
-      {
-        "name": "grouped",
-        "source": "wandb",
-        "transform": [
-          {
-            "type": "aggregate",
-            "groupby": ["${field:group}"],
-            "fields": ["${field:y}"],
-            "ops": ["average"]
-          }         
-        ]      
-      },
-      {
-          "name": "fields",
-          "values": [
-            "h1",
-            "h2",
-            "score"
-          ]
-        }
-    ],
-  
-    "scales": [
-      {
-        "name": "ord", "type": "point",
-        "range": "width", "round": true,
-        "domain": {"data": "fields", "field": "data"}
-      },
-      {
-        "name": "h1", "type": "linear",
-        "range": "height", "zero": false, "nice": true,
-        "domain": {"data": "grouped", "field": "${field:h1}"}
-      },
-      {
-        "name": "h2", "type": "linear",
-        "range": "height", "zero": false, "nice": true,
-        "domain": {"data": "grouped", "field": "${field:h2}"}
-      },
-      {
-        "name": "score", "type": "linear",
-        "range": "height", "zero": false, "nice": true,
-        "domain": {"data": "grouped", "field": "average_${field:y}"}
-      }    
-    ],
-  
-    "axes": [    
-      { 
-        "orient": "left",
-        "zindex": 1,      
-        "scale": "h1",
-        "title": "h1",
-        "offset": {"scale": "ord", "value": "h1", "mult": -1}
-      },
-      { 
-        "orient": "left",
-        "zindex": 1,      
-        "scale": "h2",
-        "title": "h2",
-        "offset": {"scale": "ord", "value": "h2", "mult": -1}
-      },
-      { 
-        "orient": "left",
-        "zindex": 1,      
-        "scale": "score",
-        "title": "score",
-        "offset": {"scale": "ord", "value": "score", "mult": -1}
-      }
-    ],
-  
-    "marks": [
-      {
-          "type": "group",
-          "from": {"data": "grouped"},
-          "marks": [
-            {
-              "type": "line",
-              "from": {"data": "fields"},
-              "encode": {
-                "enter": {
-                  "x": {"scale": "ord", "field": "data"},
-                  "y": {
-                    "scale": {"datum": "data"},
-                    "field": {"parent": {"datum": "data"}}
-                  },
-                  "stroke": {"value": "steelblue"},
-                  "strokeWidth": {"value": 1.01},
-                  "strokeOpacity": {"value": 0.3}
-                }
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Parallel coordinates plot showing 7 dimensions of automobile statistics.",
+  "width": 700,
+  "height": 400,
+  "padding": 5,
+  "title": "Porovnanie konfigurácií agentov podľa získaného priemerného skóre",
+
+  "config": {
+    "axisY": {
+      "titleX": -2,
+      "titleY": 410,
+      "titleAngle": 0,
+      "titleAlign": "right",
+      "titleBaseline": "top"
+    }
+  },
+
+  "data": [
+    {
+      "name": "history",
+      "values": [
+        {"lr": 0.0001, "h1": 4, "h2": 4, "score": -1.5},
+        {"lr": 0.0001, "h1": 8, "h2": 8, "score": -1.655459082},
+        {"lr": 0.0001, "h1": 64, "h2": 64, "score": -1.029411178},
+        {"lr": 0.0001, "h1": 128, "h2": 128, "score": 0.782085828},
+        {"lr": 0.0001, "h1": 256, "h2": 256, "score": 0.766696607},
+
+        {"lr": 0.001, "h1": 4, "h2": 4, "score": -1.518862275},
+        {"lr": 0.001, "h1": 8, "h2": 8, "score": 0.55759481},
+        {"lr": 0.001, "h1": 64, "h2": 64, "score": 0.970708583},
+        {"lr": 0.001, "h1": 128, "h2": 128, "score": 0.903802395},
+        {"lr": 0.001, "h1": 256, "h2": 256, "score": 0.94254491},
+        
+        {"lr": 0.01, "h1": 4, "h2": 4, "score": 0.56868263},
+        {"lr": 0.01, "h1": 8, "h2": 8, "score": 0.553512974},
+        {"lr": 0.01, "h1": 64, "h2": 64, "score": -1.866267465},
+        {"lr": 0.01, "h1": 128, "h2": 128, "score": -1.734321357},
+        {"lr": 0.01, "h1": 256, "h2": 256, "score": -1.786027944}
+      ]
+    },
+    {
+      "name": "fields",
+      "values": [
+        "lr",
+        "h1",
+        "h2",
+        "score"
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "ord", "type": "point",
+      "range": "width", "round": true,
+      "domain": {"data": "fields", "field": "data"}
+    },
+    {
+      "name": "lr", "type": "linear",
+      "range": "height", "zero": false, "nice": true,
+      "domain": {"data": "history", "field": "lr"}
+    },
+    {
+      "name": "h1", "type": "linear",
+      "range": "height", "zero": false, "nice": true,
+      "domain": {"data": "history", "field": "h1"}
+    },
+    {
+      "name": "h2", "type": "linear",
+      "range": "height", "zero": false, "nice": true,
+      "domain": {"data": "history", "field": "h2"}
+    },
+    {
+      "name": "score", "type": "linear",
+      "range": "height", "zero": false, "nice": true,
+      "domain": {"data": "history", "field": "score"}
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "left", "zindex": 1,
+      "scale": "lr", "title": "Parameter učenia",
+      "offset": {"scale": "ord", "value": "lr", "mult": -1}
+    },
+    {
+      "orient": "left", "zindex": 1,
+      "scale": "h1", "title": "Počet neurónov v 1. skrytej vrstve",
+      "offset": {"scale": "ord", "value": "h1", "mult": -1}
+    },
+    {
+      "orient": "left", "zindex": 1,
+      "scale": "h2", "title": "Počet neurónov v 2. skrytej vrstve",
+      "offset": {"scale": "ord", "value": "h2", "mult": -1}
+    },
+    {
+      "orient": "left", "zindex": 1,
+      "scale": "score", "title": "Skóre",
+      "offset": {"scale": "ord", "value": "score", "mult": -1}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "group",
+      "from": {"data": "history"},
+      "marks": [
+        {
+          "type": "line",
+          "from": {"data": "fields"},
+          "encode": {
+            "update": {
+              "x": {"scale": "ord", "field": "data"},
+              "y": {
+                "scale": {"datum": "data"},
+                "field": {"parent": {"datum": "data"}}
+              },
+              "strokeWidth": {"value": 1.2},
+              "strokeOpacity": {"value": 0.3},
+              "stroke": {
+                "value": "blue"
               }
             }
-          ]
-      }
-    ]
-  }
+          }
+        }
+      ]
+    }
+  ]
+}
