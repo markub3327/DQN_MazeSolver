@@ -18,17 +18,24 @@ def main(test=False):
 
             wandb.config.batch_size = 32
             wandb.config.gamma = 0.95
-            wandb.config.h1 = 4
-            wandb.config.h2 = 4
+            wandb.config.h1 = 64
+            wandb.config.h2 = 64
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
+        else:
+            log_file = open("statistics.txt", "w")
+            
+            # header
+            log_file.write("episode;score;step;time;apples;mines;end")
+ 
 
         time_max = 1000
 
         if (test == False):
             a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], wandb.config.lr)
         else:
-            a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], 0.0, "model.h5")
+            a1 = Agent(fileName="model.h5")
+            a1.remove_noise()
 
         # uloz model do obrazku
         a1.save_plot()
@@ -48,14 +55,14 @@ def main(test=False):
             0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
             0, 1, 1, 1, 1, 1, 0, 0, 1, 0,
             0, 1, 0, 1, 0, 1, 1, 0, 1, 0,
-            0, 1, 1, 1, 0, 1, 0, 0, 4, 0,
+            0, 1, 1, 1, 0, 1, 0, 0, 4, 0
         ])
         
         # Trening agenta
         for episode in range(1,time_max+1):
             start_time = time.time()
 
-            state = env1.reset()
+            state = env1.reset(testing=test)
             state = np.expand_dims(state, axis=0)
 
             # reset score
@@ -64,11 +71,22 @@ def main(test=False):
             for step in range(1,101):
                 if test == True:
                     env1.render()
+                if test == False:
+                    # reset Q net's noise params
+                    a1.reset_noise()
 
-                # reset Q net's noise params
-                a1.reset_noise()
-
-                action = np.argmax(a1.predict(state))
+                in_key = input()
+                if in_key == 'w':
+                    action = 1
+                elif in_key == 's':
+                    action = 0
+                elif in_key == 'a':
+                    action = 2
+                elif in_key == 'd':
+                    action = 3
+                
+                #action = np.random.randint(0, 4)
+                #action = np.argmax(a1.predict(state))
             
                 next_state, reward, done, info = env1.step(action)
 
@@ -80,17 +98,17 @@ def main(test=False):
                     loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
                     if loss is not None:
                         avg_loss += loss[0]
-                else:
-                    print(f"stav: {state}")
-                    print(f"akcia: {action}")
-                    print(f"odmena: {reward}")
-                    print(f"done: {done}")
-                    print(f"step: {step}")
-                    print(f"replay_buffer_train: {len(replay_buffer.buffer)}")
-                    print(f"epoch: {episode}/{time_max}")
-                    print(f"score: {score}")
-                    print(f"apples: {info['apples']}/{env1.count_apple}")
-                    print(f"mines: {info['mines']}/{env1.count_mine}")
+                #else:
+                #    print(f"stav: {state}")
+                #    print(f"akcia: {action}")
+                #    print(f"odmena: {reward}")
+                #    print(f"done: {done}")
+                #    print(f"step: {step}")
+                #    print(f"replay_buffer_train: {len(replay_buffer.buffer)}")
+                #    print(f"epoch: {episode}/{time_max}")
+                #    print(f"score: {score}")
+                #    print(f"apples: {info['apples']}/{env1.count_apple}")
+                #    print(f"mines: {info['mines']}/{env1.count_mine}")
                 
                 # critical
                 state = np.expand_dims(next_state, axis=0)
@@ -113,6 +131,8 @@ def main(test=False):
                             'end': info['end'] * 100.0}
 
                 wandb.log(log_dict)
+            else:
+                log_file.write(f"{episode};{score};{step};{time.time()-start_time};{(info['apples'] / env1.count_apple) * 100.0};{(info['mines'] / env1.count_mine) * 100.0};{info['end'] * 100.0}\n")
 
     except KeyboardInterrupt:
         print("Game terminated")
@@ -121,6 +141,8 @@ def main(test=False):
         # Save model to file
         if (test == False):
             a1.model.save("model.h5")
+        else:
+            log_file.close()
 
 if __name__ == "__main__":
-    main()
+    main(True)

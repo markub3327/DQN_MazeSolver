@@ -6,8 +6,9 @@ from Prostredie.EnvItem import *
 
 class Prostredie:
     # Startovacie body
-    startPositions = [(0,1), (9,1), (0,5)]
-    
+    startPositions_training = [(0,1), (9,1), (0,5)]
+    startPositions_testing  = [(9,4), (6,8), (3,0)]
+
     # body v bludisku 
     prostredie = []
     
@@ -34,7 +35,7 @@ class Prostredie:
             x = np.random.randint(1, self.area_width-1)
             y = np.random.randint(1, self.area_height-1)
 
-            while (self.getId(x, y) != Cesta.Tag) or ((x == 8 and y >= 5) or (y == 1) or (y == 5)):
+            while (self.getId(x, y) != Cesta.Tag) or ((x == 3 and y == 0) or (x == 9 and y == 4) or (x == 6 and y == 8) or (x == 8 and y >= 5) or (y == 1) or (y == 5) or (x == 5 and y >= 5)):
                 x = np.random.randint(1, self.area_width-1)
                 y = np.random.randint(1, self.area_height-1)
 
@@ -47,7 +48,7 @@ class Prostredie:
             elif (self.getId(x, y) == Jablko.Tag):
                 return +0.20     # jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.25     # mina (trest)
+                return -0.20     # mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
                 return +1.00     # vychod z bludiska      
             else:
@@ -78,8 +79,12 @@ class Prostredie:
                     print('-', end='')
                 print()
 
-    def reset(self):
-        pos = random.choice(self.startPositions)
+    def reset(self, testing=False):
+        if testing:
+            pos = random.choice(self.startPositions_training)
+        else:
+            pos = random.choice(self.startPositions_training)
+
         self.currentPositionX = pos[0]
         self.currentPositionY = pos[1]
         
@@ -116,13 +121,13 @@ class Prostredie:
         oldY = self.currentPositionY
         #print(self.currentPositionX, self.currentPositionY)
 
-        if action == 0:
+        if action == 0:     # dole
             self.currentPositionY += 1
-        elif action == 1:
+        elif action == 1:   # hore
             self.currentPositionY -= 1
-        elif action == 2:
+        elif action == 2:   # vlavo
             self.currentPositionX -= 1
-        elif action == 3:
+        elif action == 3:   # vpravo
             self.currentPositionX += 1
 
         #print(action, self.currentPositionX, self.currentPositionY)

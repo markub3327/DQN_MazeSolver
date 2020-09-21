@@ -116,10 +116,22 @@
                 "scale": {"datum": "data"},
                 "field": {"parent": {"datum": "data"}}
               },
+<<<<<<< Updated upstream
               "strokeWidth": {"value": 1.2},
               "strokeOpacity": {"value": 0.3},
               "stroke": {
                 "value": "blue"
+=======
+              "strokeWidth": {"value": 1.25},
+              "strokeOpacity": {"value": 0.3},
+              "stroke": {
+                "value": "blue"
+              }
+            },
+            "hover": {
+              "stroke": {
+                "value": "red"
+>>>>>>> Stashed changes
               }
             }
           }

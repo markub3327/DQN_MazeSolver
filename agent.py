@@ -6,7 +6,7 @@ from tensorflow.keras.layers import NoisyDense, Input, PReLU
 from tensorflow.keras.utils import plot_model
 
 class Agent:
-    def __init__(self, state_dim, action_dim, hidden, lr, fileName=None):
+    def __init__(self, state_dim=None, action_dim=None, hidden=None, lr=0.001, fileName=None):
         self.model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
         self.target_model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
 
@@ -55,6 +55,10 @@ class Agent:
     def reset_noise(self):
         for l in self.model.layers[1:]:
             l.reset_noise()
+
+    def remove_noise(self):
+        for l in self.model.layers[1:]:
+            l.remove_noise()
 
     def train(self, replay_buffer, batch_size, gamma, tau):
         if len(replay_buffer.buffer) < batch_size:
