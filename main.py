@@ -75,18 +75,22 @@ def main(test=False):
                     # reset Q net's noise params
                     a1.reset_noise()
 
-                in_key = input()
-                if in_key == 'w':
-                    action = 1
-                elif in_key == 's':
-                    action = 0
-                elif in_key == 'a':
-                    action = 2
-                elif in_key == 'd':
-                    action = 3
+                # clovek
+                #in_key = input()
+                #if in_key == 'w':
+                #    action = 1
+                #elif in_key == 's':
+                #    action = 0
+                #elif in_key == 'a':
+                #    action = 2
+                #elif in_key == 'd':
+                #    action = 3
                 
+                # nahodny agent
                 #action = np.random.randint(0, 4)
-                #action = np.argmax(a1.predict(state))
+                
+                # neuronova siet
+                action = np.argmax(a1.predict(state))
             
                 next_state, reward, done, info = env1.step(action)
 
