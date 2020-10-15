@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import random
 
 from Prostredie.EnvItem import *
 
@@ -18,6 +17,11 @@ class Prostredie:
         self.currentPositionX = None
         self.currentPositionY = None
         
+        # create log files
+        self.f_startPosition = open("log_start.txt", "w")
+        self.f_apples = open("log_apples.txt", "w")
+        self.f_mines = open("log_mines.txt", "w")
+
         if (prostredie != None):
             for i in range(area_height * area_width):
                 if (prostredie[i] == Jablko.Tag):
@@ -32,15 +36,17 @@ class Prostredie:
                     self.prostredie.append(Vychod())
         
     def GenerateItem(self, item):
+        x = np.random.randint(1, self.area_width-1)
+        y = np.random.randint(1, self.area_height-1)
+
+        while (self.getId(x, y) != Cesta.Tag) or ((x == 3 and y == 0) or (x == 9 and y == 4) or (x == 6 and y == 8) or (x == 8 and y >= 5) or (y == 1) or (y == 5) or (x == 5 and y >= 5)):
             x = np.random.randint(1, self.area_width-1)
             y = np.random.randint(1, self.area_height-1)
 
-            while (self.getId(x, y) != Cesta.Tag) or ((x == 3 and y == 0) or (x == 9 and y == 4) or (x == 6 and y == 8) or (x == 8 and y >= 5) or (y == 1) or (y == 5) or (x == 5 and y >= 5)):
-                x = np.random.randint(1, self.area_width-1)
-                y = np.random.randint(1, self.area_height-1)
+        # prepis novou polozkou sveta
+        self.prostredie[y*self.area_width + x] = item
 
-            # prepis novou polozkou sveta
-            self.prostredie[y*self.area_width + x] = item
+        return x, y
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
@@ -60,7 +66,7 @@ class Prostredie:
                 self.prostredie[i] = item
         
     def render(self):
-            os.system('clear')
+            #os.system('clear')
 
             for i in range(self.area_width * 4 + 1):
                 print('-', end='')
@@ -71,9 +77,11 @@ class Prostredie:
                     if (self.currentPositionX == x and self.currentPositionY == y):
                         # Vykresli agenta
                         print("|\033[0;103;30m A \033[0m", end='')
-                    else:                       
+                    elif (abs(self.currentPositionX - x) <= 1 and abs(self.currentPositionY - y) <= 1):                       
                         print(f"|{self.prostredie[y*self.area_width + x]}", end='')
-                   
+                    else:
+                        print(f"| ", end='')
+
                 print("|")
                 for i in range(self.area_width * 4 + 1):
                     print('-', end='')
@@ -81,9 +89,9 @@ class Prostredie:
 
     def reset(self, testing=False):
         if testing:
-            pos = random.choice(self.startPositions_training)
+            pos = self.startPositions_training[np.random.randint(0,len(self.startPositions_training))]
         else:
-            pos = random.choice(self.startPositions_training)
+            pos = self.startPositions_training[np.random.randint(0,len(self.startPositions_training))]
 
         self.currentPositionX = pos[0]
         self.currentPositionY = pos[1]
@@ -93,14 +101,18 @@ class Prostredie:
         self.NahradObjekty(Mina.Tag, Cesta())
 
         # generator jablk
-        self.count_apple = random.randint(3,5)
+        self.count_apple = np.random.randint(3,5)
         for i in range(self.count_apple):
-            self.GenerateItem(Jablko())
-        
+            x, y = self.GenerateItem(Jablko())
+            self.f_apples.write(f"{x};{y}|")
+        self.f_apples.write("\n")
+
         # generator min
-        self.count_mine = random.randint(1,3)
+        self.count_mine = np.random.randint(1,3)
         for i in range(self.count_mine):
-            self.GenerateItem(Mina())
+            x, y = self.GenerateItem(Mina())
+            self.f_mines.write(f"{x};{y}|")
+        self.f_mines.write("\n")
 
         self.apples, self.mines = 0, 0
 
@@ -109,6 +121,9 @@ class Prostredie:
             self.currentPositionY/10.0
         ]
         state.extend(self.Radar())
+
+        # log to file
+        self.f_startPosition.write(f"{self.currentPositionX};{self.currentPositionY}\n")
 
         return np.array(state)
 

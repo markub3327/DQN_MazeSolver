@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 import sys
 import os
 import wandb
@@ -11,6 +11,9 @@ from agent import Agent
 from replaybuffer import ReplayBuffer
 
 def main(test=False):
+
+    #np.random.seed(99)
+
     try:
         # init wandb cloud
         if (test == False):
@@ -18,8 +21,8 @@ def main(test=False):
 
             wandb.config.batch_size = 32
             wandb.config.gamma = 0.95
-            wandb.config.h1 = 64
-            wandb.config.h2 = 64
+            wandb.config.h1 = 100
+            wandb.config.h2 = 100
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
         else:
@@ -29,7 +32,7 @@ def main(test=False):
             log_file.write("episode;score;step;time;apples;mines;end")
  
 
-        time_max = 1000
+        time_max = 20
 
         if (test == False):
             a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], wandb.config.lr)
@@ -58,7 +61,7 @@ def main(test=False):
             0, 1, 1, 1, 0, 1, 0, 0, 4, 0
         ])
         
-        # Trening agenta
+        # Hlavny cyklus hry
         for episode in range(1,time_max+1):
             start_time = time.time()
 
@@ -71,6 +74,7 @@ def main(test=False):
             for step in range(1,101):
                 if test == True:
                     env1.render()
+                
                 if test == False:
                     # reset Q net's noise params
                     a1.reset_noise()
@@ -147,6 +151,10 @@ def main(test=False):
             a1.model.save("model.h5")
         else:
             log_file.close()
+
+        env1.f_startPosition.close()
+        env1.f_apples.close()
+        env1.f_mines.close()
 
 if __name__ == "__main__":
     main(True)
