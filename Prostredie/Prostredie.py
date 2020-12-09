@@ -39,7 +39,7 @@ class Prostredie:
         x = np.random.randint(1, self.area_width-1)
         y = np.random.randint(1, self.area_height-1)
 
-        while (self.getId(x, y) != Cesta.Tag) or ((x == 3 and y == 0) or (x == 9 and y == 4) or (x == 6 and y == 8) or (x == 8 and y >= 5) or (y == 1) or (y == 5) or (x == 5 and y >= 5)):
+        while (self.getId(x, y) != Cesta.Tag) or ((x == 8 and y >= 5) or (y == 1) or (y == 5)):
             x = np.random.randint(1, self.area_width-1)
             y = np.random.randint(1, self.area_height-1)
 
@@ -50,15 +50,15 @@ class Prostredie:
 
     def Hodnotenie(self, x, y):
             if (self.getId(x, y) == Priepast.Tag):
-                return -0.75     # zakazana zona
+                return -0.55     # zakazana zona
             elif (self.getId(x, y) == Jablko.Tag):
-                return +0.20     # jablcko (odmena)
+                return +0.83     # jablcko (odmena)
             elif (self.getId(x, y) == Mina.Tag):
-                return -0.20     # mina (trest)
+                return -0.85     # mina (trest)
             elif (self.getId(x, y) == Vychod.Tag):
                 return +1.00     # vychod z bludiska      
             else:
-                return -0.015    # najkratsia cesta k vychodu
+                return -0.17     # najkratsia cesta k vychodu
 
     def NahradObjekty(self, tag, item):
         for i in range(self.area_height * self.area_width):
@@ -101,14 +101,14 @@ class Prostredie:
         self.NahradObjekty(Mina.Tag, Cesta())
 
         # generator jablk
-        self.count_apple = np.random.randint(3,5)
+        self.count_apple = np.random.randint(2,5) + 1
         for i in range(self.count_apple):
             x, y = self.GenerateItem(Jablko())
             self.f_apples.write(f"{x};{y}|")
         self.f_apples.write("\n")
 
         # generator min
-        self.count_mine = np.random.randint(1,3)
+        self.count_mine = np.random.randint(0,3) + 1
         for i in range(self.count_mine):
             x, y = self.GenerateItem(Mina())
             self.f_mines.write(f"{x};{y}|")

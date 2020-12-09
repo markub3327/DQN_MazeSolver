@@ -4,6 +4,7 @@ import os
 import wandb
 import time
 import statistics
+import argparse
 
 from Prostredie.Prostredie import Prostredie
 from Prostredie.EnvItem import *
@@ -11,28 +12,26 @@ from agent import Agent
 from replaybuffer import ReplayBuffer
 
 def main(test=False):
-
-    #np.random.seed(99)
-
     try:
         # init wandb cloud
         if (test == False):
             wandb.init(project="dqn_maze")
 
-            wandb.config.batch_size = 32
-            wandb.config.gamma = 0.95
-            wandb.config.h1 = 100
-            wandb.config.h2 = 100
+            wandb.config.batch_size = 64
+            wandb.config.gamma = 0.98
+            wandb.config.h1 = 256
+            wandb.config.h2 = 256
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
+            time_max = 1000
         else:
+            np.random.seed(99)
+
+            time_max = 20
             log_file = open("statistics.txt", "w")
             
             # header
-            log_file.write("episode;score;step;time;apples;mines;end")
- 
-
-        time_max = 20
+            log_file.write("episode;score;step;time;apples;mines;end\n")
 
         if (test == False):
             a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], wandb.config.lr)
@@ -57,7 +56,7 @@ def main(test=False):
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
             0, 1, 1, 1, 1, 1, 0, 0, 1, 0,
-            0, 1, 0, 1, 0, 1, 1, 0, 1, 0,
+            0, 1, 0, 1, 0, 1, 1, 1, 1, 0,
             0, 1, 1, 1, 0, 1, 0, 0, 4, 0
         ])
         
@@ -74,8 +73,7 @@ def main(test=False):
             for step in range(1,101):
                 if test == True:
                     env1.render()
-                
-                if test == False:
+                else:
                     # reset Q net's noise params
                     a1.reset_noise()
 
@@ -157,4 +155,15 @@ def main(test=False):
         env1.f_mines.close()
 
 if __name__ == "__main__":
-    main(True)
+    parser = argparse.ArgumentParser(description='MazeSolver  --  Double Deep Q network')
+    parser.add_argument('--train', dest='training', action='store_true', help='training the model on random mazes')
+    parser.add_argument('--test', dest='testing', action='store_true', help='testing the model on mazes')
+
+    args = parser.parse_args()
+
+    print(f'{args.training}, {args.testing}')
+
+    if args.training == True:
+        main(False)
+    elif args.testing == True:
+        main(True)
