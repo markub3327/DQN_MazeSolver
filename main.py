@@ -19,8 +19,8 @@ def main(test=False):
 
             wandb.config.batch_size = 64
             wandb.config.gamma = 0.98
-            wandb.config.h1 = 256
-            wandb.config.h2 = 256
+            wandb.config.h1 = 128
+            wandb.config.h2 = 128
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
             time_max = 5000
@@ -28,7 +28,7 @@ def main(test=False):
             np.random.seed(99)
 
             time_max = 20
-            log_file = open("statistics.txt", "w")
+            log_file = open("log/statistics.txt", "w")
             
             # header
             log_file.write("episode;score;step;time;apples;mines;end\n")
@@ -72,6 +72,7 @@ def main(test=False):
             for step in range(1,101):
                 if test == True:
                     env1.render()
+                    time.sleep(0.2)
                 else:
                     # reset Q net's noise params
                     a1.reset_noise()

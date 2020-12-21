@@ -18,9 +18,9 @@ class Prostredie:
         self.currentPositionY = None
         
         # create log files
-        self.f_startPosition = open("log_start.txt", "w")
-        self.f_apples = open("log_apples.txt", "w")
-        self.f_mines = open("log_mines.txt", "w")
+        self.f_startPosition = open("log/log_start.txt", "w")
+        self.f_apples = open("log/log_apples.txt", "w")
+        self.f_mines = open("log/log_mines.txt", "w")
 
         if (prostredie != None):
             for i in range(area_height * area_width):
@@ -89,7 +89,7 @@ class Prostredie:
 
     def reset(self, testing=False):
         if testing:
-            pos = self.startPositions_training[np.random.randint(0,len(self.startPositions_training))]
+            pos = self.startPositions_testing[np.random.randint(0,len(self.startPositions_testing))]
         else:
             pos = self.startPositions_training[np.random.randint(0,len(self.startPositions_training))]
 
