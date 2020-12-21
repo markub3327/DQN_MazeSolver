@@ -23,7 +23,7 @@ def main(test=False):
             wandb.config.h2 = 256
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
-            time_max = 1000
+            time_max = 5000
         else:
             np.random.seed(99)
 
@@ -46,7 +46,7 @@ def main(test=False):
         replay_buffer = ReplayBuffer()
 
         # generate env
-        env1 = Prostredie(10, 10, 
+        env1 = Prostredie(10, 10,
         [ 
             0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -65,7 +65,6 @@ def main(test=False):
             start_time = time.time()
 
             state = env1.reset(testing=test)
-            state = np.expand_dims(state, axis=0)
 
             # reset score
             score, avg_loss = 0.0, 0.0
@@ -99,11 +98,11 @@ def main(test=False):
                 score += reward
 
                 if (test == False):
-                    replay_buffer.add((np.squeeze(state), action, reward, next_state, float(done)))
+                    replay_buffer.add((state, action, reward, next_state, float(done)))
 
-                    loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
-                    if loss is not None:
-                        avg_loss += loss[0]
+                    if len(replay_buffer.buffer) >= wandb.config.batch_size:
+                        loss = a1.train(replay_buffer, wandb.config.batch_size, wandb.config.gamma, wandb.config.tau)
+                        avg_loss += loss
                 #else:
                 #    print(f"stav: {state}")
                 #    print(f"akcia: {action}")
@@ -117,7 +116,7 @@ def main(test=False):
                 #    print(f"mines: {info['mines']}/{env1.count_mine}")
                 
                 # critical
-                state = np.expand_dims(next_state, axis=0)
+                state = next_state
  
                 if done == True:
                     break

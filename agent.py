@@ -10,7 +10,7 @@ class Agent:
         self.model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
         self.target_model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
 
-        self.target_train(1.0)
+        self._update_target(self.model, self.target_model, tau=tf.constant(1.0))
 
     def create_network(self, state_dim, action_dim, hidden, fileName, lr):
         if (fileName == None):
@@ -19,7 +19,7 @@ class Agent:
 
             l = state_input
             for i in range(len(hidden)):
-                l = NoisyDense(hidden[i], activation='swish', kernel_initializer='he_uniform')(l)
+                l = NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform')(l)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
             output = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')(l)
@@ -45,8 +45,9 @@ class Agent:
 
         return model
     
+    @tf.function
     def predict(self, state):
-        return self.model.predict(state)[0]
+        return tf.squeeze(self.model(tf.expand_dims(state, axis=0)), axis=0)            # remove batch_size dim
     
     def reset_noise_target(self):
         for l in self.target_model.layers[1:]:
@@ -61,20 +62,18 @@ class Agent:
             l.remove_noise()
 
     def train(self, replay_buffer, batch_size, gamma, tau):
-        if len(replay_buffer.buffer) < batch_size:
-            return None
-
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
-        targets = self.model.predict(states)
+        targets = self.model(states).numpy()
         #print(targets, targets.shape)
 
         # reset Q target net's noise params
         self.reset_noise_target()
 
         # predikuj buduce akcie podla target siete
-        Q_futures = self.target_model.predict(next_states).max(axis=1)
+        Q_futures = self.target_model(next_states)
+        Q_futures = tf.reduce_max(Q_futures, axis=1)
         #print(Q_futures, Q_futures.shape)
 
         # vypocitaj TD error
@@ -82,19 +81,17 @@ class Agent:
         #print(targets, targets.shape)
 
         # pretrenuj model
-        history = self.model.fit(states, targets, batch_size=batch_size, epochs=1, verbose=0)
+        loss = self.model.train_on_batch(states, targets)
 
         # pretrenuj target siet
-        self.target_train(tau)
+        self._update_target(self.model, self.target_model, tau=tf.constant(tau))
 
-        return history.history['loss']
+        return loss
 
-    def target_train(self, tau):
-        weights = self.model.get_weights()
-        target_weights = self.target_model.get_weights()
-        for i in range(len(target_weights)):
-            target_weights[i] = weights[i] * tau + target_weights[i] * (1 - tau)
-        self.target_model.set_weights(target_weights)
+    @tf.function
+    def _update_target(self, net, net_targ, tau):
+        for source_weight, target_weight in zip(net.trainable_variables, net_targ.trainable_variables):
+            target_weight.assign(tau * source_weight + (1.0 - tau) * target_weight)
 
     def save_plot(self, path='model.png'):
         plot_model(self.model, path)
