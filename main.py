@@ -73,9 +73,12 @@ def main(test=False):
                 if test == True:
                     env1.render()
                     time.sleep(0.2)
+                    
+                    # neuronova siet
+                    action = np.argmax(a1.predict(state, reset_noise=False, remove_noise=True))
                 else:
-                    # reset Q net's noise params
-                    a1.reset_noise()
+                    # neuronova siet
+                    action = np.argmax(a1.predict(state, reset_noise=True, remove_noise=False))
 
                 # clovek
                 #in_key = input()
@@ -90,10 +93,7 @@ def main(test=False):
                 
                 # nahodny agent
                 #action = np.random.randint(0, 4)
-                
-                # neuronova siet
-                action = np.argmax(a1.predict(state))
-            
+
                 next_state, reward, done, info = env1.step(action)
 
                 score += reward
