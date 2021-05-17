@@ -8,7 +8,7 @@ from tensorflow_addons.layers.noisy_dense import NoisyDense
 
 class AgentModel(Model):
 
-    def __init__(self, hidden):
+    def __init__(self, hidden, action_dim):
         super(AgentModel, self).__init__()
         
         self.hidden_layer = []
@@ -34,7 +34,7 @@ class Agent:
 
     def create_network(self, state_dim, action_dim, hidden, fileName, lr):
         if (fileName == None):
-            model = AgentModel(hidden)
+            model = AgentModel(hidden, action_dim)
 
             # Skompiluj model
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
