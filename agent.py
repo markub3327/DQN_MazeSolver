@@ -53,8 +53,8 @@ class Agent:
             print("Loaded successful")
 
         return model
-    
-    @tf.function
+
+    #@tf.function
     def predict(self, state, reset_noise, remove_noise):
         return tf.squeeze(self.model(tf.expand_dims(state, axis=0), reset_noise=reset_noise, remove_noise=remove_noise), axis=0)            # remove batch_size dim
 
