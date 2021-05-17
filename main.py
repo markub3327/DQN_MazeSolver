@@ -145,9 +145,8 @@ def main(test=False):
         sys.exit()
     finally:
         # Save model to file
-        if (test == False):
-            a1.model.save("my_model", save_format="tf")
-        else:
+        if test == True:
+#            a1.model.save("my_model", save_format="tf")
             log_file.close()
 
         env1.f_startPosition.close()
