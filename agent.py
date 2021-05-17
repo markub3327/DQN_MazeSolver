@@ -6,6 +6,25 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.utils import plot_model
 from tensorflow_addons.layers.noisy_dense import NoisyDense
 
+class AgentModel(Model):
+
+    def __init__(self, hidden):
+        super(AgentModel, self).__init__()
+        
+        self.hidden_layer = []
+        for i in range(len(hidden)):
+            self.hidden_layer.append(NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform'))
+
+        # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
+        self.q_values = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')
+
+    def call(self, inputs, reset_noise, remove_noise):
+        x = self.hidden_layer[0]
+        for i in range(1, len(hidden)):
+            x = self.hidden_layer[i](x, reset_noise, remove_noise)
+
+        return self.q_values(x, reset_noise=reset_noise, remove_noise=remove_noise)
+
 class Agent:
     def __init__(self, state_dim=None, action_dim=None, hidden=None, lr=0.001, fileName=None):
         self.model = self.create_network(state_dim, action_dim, hidden, fileName, lr)
@@ -15,18 +34,7 @@ class Agent:
 
     def create_network(self, state_dim, action_dim, hidden, fileName, lr):
         if (fileName == None):
-            # vstupna vsrtva pre state
-            state_input = Input(shape=state_dim)
-
-            l = state_input
-            for i in range(len(hidden)):
-                l = NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform')(l)
-
-            # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-            output = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')(l)
-
-            # Vytvor model
-            model = Model(inputs=state_input, outputs=output)
+            model = AgentModel(hidden)
 
             # Skompiluj model
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
@@ -49,34 +57,16 @@ class Agent:
     @tf.function
     def predict(self, state):
         return tf.squeeze(self.model(tf.expand_dims(state, axis=0)), axis=0)            # remove batch_size dim
-    
-    def reset_noise_target(self):
-        #for l in self.target_model.layers[1:]:
-        #    l.reset_noise()
-        pass
-    
-    def reset_noise(self):
-        #for l in self.model.layers[1:]:
-        #    l.reset_noise()
-        pass
-    
-    def remove_noise(self):
-        #for l in self.model.layers[1:]:
-        #    l.remove_noise()
-        pass
-   
+
     def train(self, replay_buffer, batch_size, gamma, tau):
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
-        targets = self.model(states).numpy()
+        targets = self.model(states, reset_noise=False, remove_noise=True).numpy()
         #print(targets, targets.shape)
 
-        # reset Q target net's noise params
-        self.reset_noise_target()
-
         # predikuj buduce akcie podla target siete
-        Q_futures = self.target_model(next_states)
+        Q_futures = self.target_model(next_states, reset_noise=True, remove_noise=False)
         Q_futures = tf.reduce_max(Q_futures, axis=1)
         #print(Q_futures, Q_futures.shape)
 
