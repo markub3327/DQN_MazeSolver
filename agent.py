@@ -39,7 +39,7 @@ class Agent:
             # Skompiluj model
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
 
-            model.summary()
+            #model.summary()
 
             print("Created successful")
         else:
