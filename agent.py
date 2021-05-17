@@ -62,7 +62,7 @@ class Agent:
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
-        targets = self.model(states, reset_noise=False, remove_noise=True).numpy()
+        targets = self.model(states, reset_noise=False, remove_noise=False).numpy()
         #print(targets, targets.shape)
 
         # predikuj buduce akcie podla target siete
