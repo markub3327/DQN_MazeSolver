@@ -2,8 +2,9 @@ import tensorflow as tf
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import NoisyDense, Input, PReLU
+from tensorflow.keras.layers import Input
 from tensorflow.keras.utils import plot_model
+from tensorflow_addons.layers.noisy_dense import NoisyDense
 
 class Agent:
     def __init__(self, state_dim=None, action_dim=None, hidden=None, lr=0.001, fileName=None):
