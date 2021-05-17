@@ -21,7 +21,7 @@ class AgentModel(Model):
     def call(self, inputs, reset_noise, remove_noise):
         x = self.hidden_layer[0]
         for i in range(1, len(hidden)):
-            x = self.hidden_layer[i](x, reset_noise, remove_noise)
+            x = self.hidden_layer[i](x, reset_noise=reset_noise, remove_noise=remove_noise)
 
         return self.q_values(x, reset_noise=reset_noise, remove_noise=remove_noise)
 
