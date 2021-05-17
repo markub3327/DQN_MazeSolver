@@ -19,7 +19,7 @@ class AgentModel(Model):
         self.q_values = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')
 
     def call(self, inputs, reset_noise, remove_noise):
-        x = self.hidden_layer[0]
+        x = self.hidden_layer[0](inputs)
         for i in range(1, len(self.hidden_layer)):
             x = self.hidden_layer[i](x, reset_noise=reset_noise, remove_noise=remove_noise)
 
