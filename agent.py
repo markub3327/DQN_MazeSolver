@@ -43,7 +43,8 @@ class Agent:
             print("Loaded successful")
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-            
+        self.loss_fn = tf.keras.losses.MeanSquaredError()
+    
         return model
 
     #@tf.function
@@ -67,10 +68,9 @@ class Agent:
         # pretrenuj model
         with tf.GradientTape() as tape:
             q_vals = self.model(states, reset_noise=False, remove_noise=False)
-            q_losses = tf.losses.huber(
+            loss = self.loss_fn(
                 y_true=Q_targets, y_pred=q_vals
             )
-            loss = tf.nn.compute_average_loss(q_losses)
 
         grads = tape.gradient(loss, self.model.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_weights))
