@@ -36,22 +36,14 @@ class Agent:
         if (fileName == None):
             model = AgentModel(hidden, action_dim)
 
-            # Skompiluj model
-            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
-
-            #model.summary()
-
             print("Created successful")
         else:
             model = tf.keras.models.load_model(fileName, compile=False)
 
-            # Skompiluj model
-            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
-
-            #model.summary()
-
             print("Loaded successful")
 
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+            
         return model
 
     #@tf.function
@@ -62,8 +54,7 @@ class Agent:
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
 
         # predikuj akcie pre stavy            
-        targets = self.model(states, reset_noise=False, remove_noise=False).numpy()
-        #print(targets, targets.shape)
+        Q_targets = self.model(states, reset_noise=False, remove_noise=False).numpy()
 
         # predikuj buduce akcie podla target siete
         Q_futures = self.target_model(next_states, reset_noise=True, remove_noise=False)
@@ -71,11 +62,18 @@ class Agent:
         #print(Q_futures, Q_futures.shape)
 
         # vypocitaj TD error
-        targets[(np.arange(batch_size), actions)] = rewards + ((1-dones) * gamma * Q_futures)
-        #print(targets, targets.shape)
+        Q_targets[(np.arange(batch_size), actions)] = rewards + ((1-dones) * gamma * Q_futures)
 
         # pretrenuj model
-        loss = self.model.train_on_batch(states, targets)
+        with tf.GradientTape() as tape:
+            q_vals = self.model(states, reset_noise=False, remove_noise=False)
+            q_losses = tf.losses.huber(
+                y_true=Q_targets, y_pred=q_vals
+            )
+            loss = tf.nn.compute_average_loss(q_losses)
+
+        grads = tape.gradient(loss, self.model.trainable_weights)
+        self.optimizer.apply_gradients(zip(grads, self.model.trainable_weights))
 
         # pretrenuj target siet
         self._update_target(self.model, self.target_model, tau=tf.constant(tau))
