@@ -146,7 +146,7 @@ def main(test=False):
     finally:
         # Save model to file
         if (test == False):
-            a1.model.save("model.h5")
+            a1.model.save("my_model", save_format="tf")
         else:
             log_file.close()
 
