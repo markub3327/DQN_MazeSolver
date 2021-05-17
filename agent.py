@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.utils import plot_model
 from tensorflow_addons.layers.noisy_dense import NoisyDense
 
@@ -16,14 +16,14 @@ class AgentModel(Model):
             self.hidden_layer.append(NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform'))
 
         # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-        self.q_values = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')
+        self.q_values = Dense(action_dim, activation='linear', kernel_initializer='glorot_uniform')
 
     def call(self, inputs, reset_noise, remove_noise):
         x = self.hidden_layer[0](inputs)
         for i in range(1, len(self.hidden_layer)):
             x = self.hidden_layer[i](x, reset_noise=reset_noise, remove_noise=remove_noise)
 
-        return self.q_values(x, reset_noise=reset_noise, remove_noise=remove_noise)
+        return self.q_values(x)
 
 class Agent:
     def __init__(self, state_dim=None, action_dim=None, hidden=None, lr=0.001, fileName=None):
