@@ -55,8 +55,8 @@ class Agent:
         return model
     
     @tf.function
-    def predict(self, state):
-        return tf.squeeze(self.model(tf.expand_dims(state, axis=0)), axis=0)            # remove batch_size dim
+    def predict(self, state, reset_noise, remove_noise):
+        return tf.squeeze(self.model(tf.expand_dims(state, axis=0), reset_noise=reset_noise, remove_noise=remove_noise), axis=0)            # remove batch_size dim
 
     def train(self, replay_buffer, batch_size, gamma, tau):
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
