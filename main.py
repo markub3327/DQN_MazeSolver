@@ -73,12 +73,9 @@ def main(test=False):
                 if test == True:
                     env1.render()
                     time.sleep(0.2)
-                    
-                    # neuronova siet
-                    action = np.argmax(a1.predict(state, reset_noise=False, remove_noise=True))
                 else:
-                    # neuronova siet
-                    action = np.argmax(a1.predict(state, reset_noise=True, remove_noise=False))
+                    # reset Q net's noise params
+                    a1.reset_noise()
 
                 # clovek
                 #in_key = input()
@@ -93,7 +90,10 @@ def main(test=False):
                 
                 # nahodny agent
                 #action = np.random.randint(0, 4)
-
+                
+                # neuronova siet
+                action = np.argmax(a1.predict(state))
+            
                 next_state, reward, done, info = env1.step(action)
 
                 score += reward
@@ -145,8 +145,9 @@ def main(test=False):
         sys.exit()
     finally:
         # Save model to file
-        if test == True:
-#            a1.model.save("my_model", save_format="tf")
+        if (test == False):
+            a1.model.save("model.h5")
+        else:
             log_file.close()
 
         env1.f_startPosition.close()
