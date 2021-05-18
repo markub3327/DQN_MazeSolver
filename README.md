@@ -14,7 +14,7 @@
 
 ![model](model.png)
 
-In hidden layers is used **swish** activation function and linear activation function is used in the output layer.
+In hidden layers is used **ReLU** activation function and linear activation function is used in the output layer.
 
 ## States
 
