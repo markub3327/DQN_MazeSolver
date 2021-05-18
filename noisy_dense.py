@@ -37,7 +37,6 @@ Constraint = Union[None, dict, str, Callable, tf.keras.constraints.Constraint]
 Activation = Union[None, str, Callable]
 
 
-@tf.keras.utils.register_keras_serializable(package="Addons")
 class NoisyDense(tf.keras.layers.Dense):
     r"""Noisy dense layer that injects random noise to the weights of dense layer.
     Noisy dense layers are fully connected layers whose weights and biases are
