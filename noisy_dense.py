@@ -209,7 +209,7 @@ class NoisyDense(tf.keras.layers.Dense):
         else:
             self.sigma_bias = None
             self.mu_bias = None
-        self._reset_noise()
+        self.reset_noise()
         self.built = True
 
     @property
