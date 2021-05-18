@@ -13,6 +13,7 @@ from replaybuffer import ReplayBuffer
 
 def main(test=False):
     try:
+        # Pre proces ucenia
         if (test == False):
             # init wandb cloud
             wandb.init(project="dqn_maze")
@@ -26,6 +27,7 @@ def main(test=False):
             wandb.config.tau = 0.01
             max_episodes = 5000
             max_steps = 100
+        # Pre proces testovania
         else:
             max_episodes = 20
             max_steps = 100
