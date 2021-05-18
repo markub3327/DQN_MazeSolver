@@ -178,8 +178,8 @@ class NoisyDense(tf.keras.layers.Dense):
             "eps_kernel",
             shape=[self.last_dim, self.units],
             initializer=initializers.Zeros(),
-            regularizer=self.kernel_regularizer,
-            constraint=self.kernel_constraint,
+            regularizer=None,
+            constraint=None,
             dtype=self.dtype,
             trainable=False,
         )
@@ -215,8 +215,8 @@ class NoisyDense(tf.keras.layers.Dense):
                     self.units,
                 ],
                 initializer=initializers.Zeros(),
-                regularizer=self.bias_regularizer,
-                constraint=self.bias_constraint,
+                regularizer=None,
+                constraint=None,
                 dtype=self.dtype,
                 trainable=False,
             )
