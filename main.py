@@ -1,9 +1,7 @@
 import numpy as np
 import sys
-import os
 import wandb
 import time
-import statistics
 import argparse
 
 from Prostredie.Prostredie import Prostredie
@@ -17,7 +15,7 @@ def main(test=False):
         if (test == False):
             # init wandb cloud
             wandb.init(project="dqn_maze")
-            
+
             # hyperparametre
             wandb.config.batch_size = 64
             wandb.config.gamma = 0.98

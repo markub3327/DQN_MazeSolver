@@ -52,15 +52,15 @@ class Agent:
     
     def reset_noise_target(self):
         for l in self.target_model.layers[1:]:
-            l.reset_noise()
+            l._reset_noise()
 
     def reset_noise(self):
         for l in self.model.layers[1:]:
-            l.reset_noise()
+            l._reset_noise()
 
     def remove_noise(self):
         for l in self.model.layers[1:]:
-            l.remove_noise()
+            l._remove_noise()
 
     def train(self, replay_buffer, batch_size, gamma, tau):
         states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)

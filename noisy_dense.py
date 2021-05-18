@@ -201,7 +201,7 @@ class NoisyDense(tf.keras.layers.Dense):
         else:
             self.sigma_bias = None
             self.mu_bias = None
-        self.reset_noise()
+        self._reset_noise()
         self.built = True
 
     @property
@@ -213,7 +213,7 @@ class NoisyDense(tf.keras.layers.Dense):
         if self.use_bias:
             return self.mu_bias + (self.sigma_bias * self.eps_bias)
 
-    def reset_noise(self):
+    def _reset_noise(self):
         """Create the factorised Gaussian noise."""
 
         dtype = self._compute_dtype_object
@@ -238,7 +238,7 @@ class NoisyDense(tf.keras.layers.Dense):
                 dtype=dtype,
             )
 
-    def remove_noise(self):
+    def _remove_noise(self):
         """Remove the factorised Gaussian noise."""
 
         dtype = self._compute_dtype_object
