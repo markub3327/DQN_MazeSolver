@@ -29,7 +29,7 @@ class Agent:
             model = Model(inputs=state_input, outputs=output)
 
             # Skompiluj model
-            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
+            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='huber')
 
             model.summary()
 
@@ -38,7 +38,7 @@ class Agent:
             model = tf.keras.models.load_model(fileName, compile=False)
 
             # Skompiluj model
-            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')
+            model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='huber')
 
             #model.summary()
 
