@@ -35,7 +35,7 @@ class Agent:
 
             print("Created successful")
         else:
-            model = tf.keras.models.load_model(fileName, compile=False)
+            model = tf.keras.models.load_model(fileName, compile=False, custom_objects={'NoisyDense': NoisyDense})
 
             # Skompiluj model
             model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss='mse')

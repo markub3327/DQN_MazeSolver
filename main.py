@@ -38,12 +38,10 @@ def main(test=False):
 
         if (test == False):
             a1 = Agent(26, 4, [wandb.config.h1, wandb.config.h2], wandb.config.lr)
+            a1.save_plot()
         else:
             a1 = Agent(fileName="model.h5")
             a1.remove_noise()
-
-        # uloz model do obrazku
-        a1.save_plot()
 
         # experiences replay buffer
         replay_buffer = ReplayBuffer()
