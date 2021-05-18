@@ -50,17 +50,14 @@ class Agent:
     def predict(self, state):
         return tf.squeeze(self.model(tf.expand_dims(state, axis=0)), axis=0)            # remove batch_size dim
     
-    @tf.function
     def reset_noise_target(self):
         for l in self.target_model.layers[1:]:
             l.reset_noise()
 
-    @tf.function
     def reset_noise(self):
         for l in self.model.layers[1:]:
             l.reset_noise()
 
-    @tf.function
     def remove_noise(self):
         for l in self.model.layers[1:]:
             l.remove_noise()
