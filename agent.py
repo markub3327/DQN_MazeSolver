@@ -20,10 +20,10 @@ class Agent:
 
             l = state_input
             for i in range(len(hidden)):
-                l = NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform')(l)
+                l = NoisyDense(hidden[i], activation='relu', kernel_initializer='he_uniform', use_factorised=False)(l)
 
             # vystupna vrstva   -- musi byt linear ako posledna vrstva pre regresiu Q funkcie (-nekonecno, nekonecno)!!!
-            output = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform')(l)
+            output = NoisyDense(action_dim, activation='linear', kernel_initializer='glorot_uniform', use_factorised=False)(l)
 
             # Vytvor model
             model = Model(inputs=state_input, outputs=output)
