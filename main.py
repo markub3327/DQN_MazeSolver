@@ -13,24 +13,27 @@ from replaybuffer import ReplayBuffer
 
 def main(test=False):
     try:
-        # init wandb cloud
         if (test == False):
+            # init wandb cloud
             wandb.init(project="dqn_maze")
-
+            
+            # hyperparametre
             wandb.config.batch_size = 64
             wandb.config.gamma = 0.98
             wandb.config.h1 = 128
             wandb.config.h2 = 128
             wandb.config.lr = 0.001
             wandb.config.tau = 0.01
-            time_max = 5000
+            max_episodes = 5000
+            max_steps = 100
         else:
             np.random.seed(99)
 
-            time_max = 20
-            log_file = open("log/statistics.txt", "w")
+            max_episodes = 20
+            max_steps = 100
             
-            # header
+            # init file
+            log_file = open("log/statistics.txt", "w")
             log_file.write("episode;score;step;time;apples;mines;end\n")
 
         if (test == False):
@@ -61,7 +64,7 @@ def main(test=False):
         ])
         
         # Hlavny cyklus hry
-        for episode in range(1,time_max+1):
+        for episode in range(1,max_episodes+1):
             start_time = time.time()
 
             state = env1.reset(testing=test)
@@ -69,7 +72,7 @@ def main(test=False):
             # reset score
             score, avg_loss = 0.0, 0.0
 
-            for step in range(1,101):
+            for step in range(1,max_steps+1):
                 if test == True:
                     env1.render()
                     time.sleep(0.2)
@@ -111,7 +114,7 @@ def main(test=False):
                 #    print(f"done: {done}")
                 #    print(f"step: {step}")
                 #    print(f"replay_buffer_train: {len(replay_buffer.buffer)}")
-                #    print(f"epoch: {episode}/{time_max}")
+                #    print(f"epoch: {episode}/{max_episodes}")
                 #    print(f"score: {score}")
                 #    print(f"apples: {info['apples']}/{env1.count_apple}")
                 #    print(f"mines: {info['mines']}/{env1.count_mine}")
