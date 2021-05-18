@@ -24,7 +24,6 @@ from tensorflow.keras import (
 )
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import InputSpec
-from typeguard import typechecked
 
 
 def _scaled_noise(size, dtype):
