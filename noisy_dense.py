@@ -25,13 +25,16 @@ from tensorflow.keras import (
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import InputSpec
 from typeguard import typechecked
-
-from tensorflow_addons.utils import types
-
+from typing import Union, Callable, List
 
 def _scaled_noise(size, dtype):
     x = tf.random.normal(shape=size, dtype=dtype)
     return tf.sign(x) * tf.sqrt(tf.abs(x))
+
+Initializer = Union[None, dict, str, Callable, tf.keras.initializers.Initializer]
+Regularizer = Union[None, dict, str, Callable, tf.keras.regularizers.Regularizer]
+Constraint = Union[None, dict, str, Callable, tf.keras.constraints.Constraint]
+Activation = Union[None, str, Callable]
 
 
 @tf.keras.utils.register_keras_serializable(package="Addons")
@@ -102,13 +105,13 @@ class NoisyDense(tf.keras.layers.Dense):
         units: int,
         sigma: float = 0.5,
         use_factorised: bool = True,
-        activation: types.Activation = None,
+        activation: Activation = None,
         use_bias: bool = True,
-        kernel_regularizer: types.Regularizer = None,
-        bias_regularizer: types.Regularizer = None,
-        activity_regularizer: types.Regularizer = None,
-        kernel_constraint: types.Constraint = None,
-        bias_constraint: types.Constraint = None,
+        kernel_regularizer: Regularizer = None,
+        bias_regularizer: Regularizer = None,
+        activity_regularizer: Regularizer = None,
+        kernel_constraint: Constraint = None,
+        bias_constraint: Constraint = None,
         **kwargs,
     ):
         super().__init__(
