@@ -27,11 +27,11 @@ def main(test=False):
             max_episodes = 5000
             max_steps = 100
         else:
-            np.random.seed(99)
-
             max_episodes = 20
             max_steps = 100
-            
+
+            np.random.seed(99)
+
             # init file
             log_file = open("log/statistics.txt", "w")
             log_file.write("episode;score;step;time;apples;mines;end\n")
