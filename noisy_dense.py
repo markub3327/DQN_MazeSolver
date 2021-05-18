@@ -182,7 +182,19 @@ class NoisyDense(tf.keras.layers.Dense):
             trainable=True,
         )
 
+        # Non-learnable parameters
+        self.eps_kernel = self.add_weight(
+            "eps_kernel",
+            shape=[self.last_dim, self.units],
+            initializer=initializers.Zeros(),
+            regularizer=None,
+            constraint=None,
+            dtype=self.dtype,
+            trainable=False,
+        )
+
         if self.use_bias:
+            # Learnable parameters
             self.sigma_bias = self.add_weight(
                 "sigma_bias",
                 shape=[
@@ -206,9 +218,23 @@ class NoisyDense(tf.keras.layers.Dense):
                 dtype=self.dtype,
                 trainable=True,
             )
+
+            # Non-learnable parameters
+            self.eps_bias = self.add_weight(
+                "eps_bias",
+                shape=[
+                    self.units,
+                ],
+                initializer=initializers.Zeros(),
+                regularizer=None,
+                constraint=None,
+                dtype=self.dtype,
+                trainable=False,
+            )
         else:
             self.sigma_bias = None
             self.mu_bias = None
+            self.eps_bias = None
         self.reset_noise()
         self.built = True
 
@@ -232,26 +258,30 @@ class NoisyDense(tf.keras.layers.Dense):
             out_eps = _scaled_noise([1, self.units], dtype=dtype)
 
             # Scale the random noise
-            self.eps_kernel = tf.matmul(in_eps, out_eps)
-            self.eps_bias = out_eps[0]
+            self.eps_kernel.assign(tf.matmul(in_eps, out_eps))
+            self.eps_bias.assign(out_eps[0])
         else:
             # generate independent variables
-            self.eps_kernel = tf.random.normal(
-                shape=[self.last_dim, self.units], dtype=dtype
+            self.eps_kernel.assign(
+                tf.random.normal(
+                    shape=[self.last_dim, self.units], dtype=dtype
+                )
             )
-            self.eps_bias = tf.random.normal(
-                shape=[
-                    self.units,
-                ],
-                dtype=dtype,
+            self.eps_bias.assign(
+                tf.random.normal(
+                    shape=[
+                        self.units,
+                    ],
+                    dtype=dtype,
+                )
             )
 
     def remove_noise(self):
         """Remove the factorised Gaussian noise."""
 
         dtype = self._compute_dtype_object
-        self.eps_kernel = tf.zeros([self.last_dim, self.units], dtype=dtype)
-        self.eps_bias = tf.zeros([self.units], dtype=dtype)
+        self.eps_kernel.assign(tf.zeros([self.last_dim, self.units], dtype=dtype))
+        self.eps_bias.assign(tf.zeros([self.units], dtype=dtype))
 
     def call(self, inputs):
         # TODO(WindQAQ): Replace this with `dense()` once public.
