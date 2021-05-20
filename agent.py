@@ -67,19 +67,16 @@ class Agent:
 
         # predikuj akcie pre stavy            
         targets = self.model(states).numpy()
-        #print(targets, targets.shape)
 
-        # reset Q target net's noise params
+        # resetuj parametre sumu Q target siete
         self.reset_noise_target()
 
         # predikuj buduce akcie podla target siete
         Q_futures = self.target_model(next_states)
         Q_futures = tf.reduce_max(Q_futures, axis=1)
-        #print(Q_futures, Q_futures.shape)
 
         # vypocitaj TD error
         targets[(np.arange(batch_size), actions)] = rewards + ((1-dones) * gamma * Q_futures)
-        #print(targets, targets.shape)
 
         # pretrenuj model
         loss = self.model.train_on_batch(states, targets)
