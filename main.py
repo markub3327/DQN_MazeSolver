@@ -17,7 +17,7 @@ def main(test=False):
             wandb.init(project="dqn_maze")
 
             # hyperparametre
-            wandb.config.batch_size = 64
+            wandb.config.batch_size = 32
             wandb.config.gamma = 0.98
             wandb.config.h1 = 128
             wandb.config.h2 = 128
